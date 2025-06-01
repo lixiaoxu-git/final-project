@@ -1,5 +1,7 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 
 
@@ -618,22 +620,61 @@ def test_dqn(trainer, maze, start_pos, target_pos,):
             break
         agent.x,agent.y = x,y
     return path
+# 绘制最终路径
+def plot_final_path(maze, path, start_pos, target_pos):
+    # 创建迷宫数组
+    maze_array = np.array(maze)
+    
+    # 标记起点和终点
+    maze_array[start_pos[1]][start_pos[0]] = 2  # 起点
+    maze_array[target_pos[1]][target_pos[0]] = 1  # 终点
+    
+    # 创建颜色映射
+    cmap = ListedColormap(['black', 'white', 'green', 'red'])
+    
+    # 创建图形
+    plt.figure(figsize=(10, 10))
+    plt.imshow(maze_array, cmap=cmap, vmin=-1, vmax=3)
+    
+    # 添加网格
+    plt.grid(color='gray', linestyle='-', linewidth=0.5)
+    plt.xticks(np.arange(-0.5, maze_array.shape[1], 1), [])
+    plt.yticks(np.arange(-0.5, maze_array.shape[0], 1), [])
+    
+    # 绘制路径
+    if path:
+        path_x = [p[0] for p in path]
+        path_y = [p[1] for p in path]
+        plt.plot(path_x, path_y, 'bo-', linewidth=2, markersize=8)
+        plt.plot(path_x[0], path_y[0], 'yo', markersize=12, label='Start')  # 起点
+        plt.plot(path_x[-1], path_y[-1], 'ro', markersize=12, label='End')  # 终点
+    
+    # 添加图例
+    plt.legend(loc='upper right')
+    
+    # 添加标题
+    plt.title(f'Maze Path (Length: {len(path)})')
+    
+    # 保存图像
+    plt.tight_layout()
+    plt.savefig('maze_final_path.png')
+    plt.show()
+    print("最终路径图已保存为 'maze_final_path.png'")
 
 # 主函数
 if __name__ == "__main__":
-    width, height = 5,5
+    width, height = 9,9
     state_size = 4
     maze, target_pos, start_pos = generate_maze(width, height)
     maze_array = np.array(maze)
     maze_array[start_pos[1]][start_pos[0]] = 2  # 标记起点
     print("生成的迷宫：")
     print(maze_array)
-
     # 训练DQN
     print("\n开始训练...")
     trainer, rewards = train_dqn(maze, start_pos, target_pos, episodes=2000)
-
     # 测试
     print("\n开始测试...")
     path = test_dqn(trainer, maze, start_pos, target_pos)
     print("路径：", path)
+    plot_final_path(maze, path, start_pos, target_pos)
